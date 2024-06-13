@@ -1,0 +1,14 @@
+@import url('root.css');
+
+footer{
+    display:flex;
+    justify-content:space-between;
+    align-items: center;
+    flex-direction: row;
+    background-color: var(--color-primary);
+    height: 10%;
+}
+
+p, h3{
+    margin: 15px;
+}
