@@ -1,37 +1,42 @@
 import config from "./config";
 
-function conexionServer(endpoint,setData, setState, method = "GET", newData={}){
-    // Convertir FormData a un objeto JSON
-    /*const jsonData = {};
-    newData.forEach((value, key) => {
-        jsonData[key] = value;
-    });*/
+function conexionServer(endpoint,setData, setState, method = "GET", newData={}, setErrorMessage){
     fetch(`${config.backendUrl}/${endpoint}`,{
         method: method,
         headers:{
             'Content-Type': 'application/json'
         },
-        body: method !== "GET" ? JSON.stringify(newData) : null,
+        body: (method === "GET" && Object.keys(newData).length === 0) ? null : JSON.stringify(newData),
     })
         .then(response=>{
             if(!response.ok){
-                throw new Error("error al conectarse a la base de datos");
+                return response.text().then(text => {
+                    try {
+                        const errorData = JSON.parse(text);
+                        throw new Error(JSON.stringify(errorData));
+                    } catch (e) {
+                        throw new Error(text);
+                    }
+                });
+            }
+            if (response.status === 204) {
+                return null;
             }
             return response.json();
         })
         .then(dataJson=>{
-            if(dataJson.status=='success'){
+            if (dataJson) {
                 setData(dataJson.data);
-                setState("SUCCESS");
-            }else{
-                throw new Error("error al hacer el fetch de los datos");
+            } else {
+                setData(null);
             }
+            setState("SUCCESS");
         })
-        .catch(error=>{
-            setState("Error");
-            console.log("error: ",error);
-            throw new Error(error);
-        })
+        .catch(error => {
+            setState("ERROR");
+            const parsedError = JSON.parse(error.message);
+            setErrorMessage(parsedError); 
+        });
 }
 
 export default conexionServer;

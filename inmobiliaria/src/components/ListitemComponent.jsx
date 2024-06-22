@@ -1,9 +1,9 @@
 import React from "react";
 import '../assets/styles/ListitemComponent.css';
 
-function ListItemComponent({ id, children }) {
+function ListItemComponent({ children }) {
   return (
-    <li key={id} className="list-item">
+    <li className="list-item">
       {children}
     </li>
   );

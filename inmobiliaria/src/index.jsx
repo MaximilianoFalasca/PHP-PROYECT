@@ -6,6 +6,12 @@ import { createBrowserRouter, RouterProvider  } from 'react-router-dom';
 import TipoPropiedadPage from './pages/tipoPropiedad/TipoPropiedadPage';
 import NewTipoPropiedad from './pages/tipoPropiedad/NewTipoPropiedad';
 import EditTipoPropiedad from './pages/tipoPropiedad/EditTipoPropiedad';
+import PropiedadPage from './pages/propiedad/PropiedadPage';
+import EditPropiedad from './pages/propiedad/EditPropiedad';
+import NewPropiedad from './pages/propiedad/NewPropiedad';
+import ReservaPage from './pages/reservas/ReservaPage';
+import NewReserva from './pages/reservas/NewReserva';
+import EditReserva from './pages/reservas/EditReserva';
 
 const router = createBrowserRouter([
   {
@@ -13,20 +19,36 @@ const router = createBrowserRouter([
     element: <TipoPropiedadPage />,
   },
   {
-    path: "/tipoPropiedad",
-    element: <TipoPropiedadPage />,
-  },
-  {
-    path: "/reserva",
+    path: "/tipos_propiedad/create",
     element: <NewTipoPropiedad />,
   },
   {
-    path: "/propiedad",
-    element: <TipoPropiedadPage />,
+    path: "/tipos_propiedad/edit/:id",
+    element: <EditTipoPropiedad />,
   },
   {
-    path: "/editarTipoPropiedad",
-    element: <EditTipoPropiedad />,
+    path: "/propiedad",
+    element: <PropiedadPage />,
+  },
+  {
+    path: "/propiedad/create",
+    element: <NewPropiedad />,
+  },
+  {
+    path: "/propiedad/edit/:id",
+    element: <EditPropiedad />,
+  },
+  {
+    path: "/reserva",
+    element: <ReservaPage />,
+  },
+  {
+    path: "/reserva/create",
+    element: <NewReserva />,
+  },
+  {
+    path: "/reserva/edit/:id",
+    element: <EditReserva />,
   },
 ]);
 

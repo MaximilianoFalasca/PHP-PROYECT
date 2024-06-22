@@ -5,7 +5,7 @@ import conexionServer from "../../utils/conexionServer";
 import FormChangeDatos from "../../components/FormChangeDatos";
 
 //hay variables que sobran me parece
-function NewTipoPropiedad(){
+function NewReserva(){
     const navigate = useNavigate();
     const [data,setData]=useState({});
     const [state,setState]=useState("LOADING");
@@ -13,33 +13,50 @@ function NewTipoPropiedad(){
 
     async function sendData(event){
         event.preventDefault();
-        const formData = new FormData(event.target);
+
+        setState("LOADING");
+
+        let formData = new FormData(event.target);
 
         let datos = {};
         formData.forEach((value, key) => {
-            datos[key] = value;
+            if(value==='true'){
+                datos[key]=1;
+            }else if(value==='false'){
+                datos[key]=0;
+            }else if(value!==''){
+                datos[key] = value;
+            }
         });
 
         let validaciones = { 
-            'nombre': {
+            'propiedad_id': {
                 'requerido': true,
-                'longitud': 50
-            } 
+                'int':50
+            },
+            'inquilino_id' : {
+                'requerido':true,
+                'int':50
+            },
+            'fecha_desde' : {
+                'requerido':true,
+                'fecha':50
+            },
+            'cantidad_noches' : {
+                'requerido':true,
+                'int':50
+            }
         };
 
         try {
-            validarCampos(datos, validaciones);
-            console.log(datos);
+            validarCampos(datos,validaciones);
 
-            conexionServer("tipos_propiedad", setData, setState, "POST", datos);
+            conexionServer("reservas", setData, setState, "POST", datos);
             if(state==="SUCCESS"){
-                alert('Ingreso de datos exitoso.');
-            
-                setTimeout(() => {
-                    navigate("/");
-                }, 5000);
+                alert('Reserva creada exitosamente.');
+                navigate("/reserva");
             }
-        } catch (err) {
+        }catch (err) {
             setState("ERROR");
             const errorObject = JSON.parse(err.message);
             setErrorMessage(errorObject);
@@ -50,9 +67,9 @@ function NewTipoPropiedad(){
     return(
         <>
             <FormChangeDatos 
-                titulo="Agregar un nuevo Tipo de Propiedad" 
+                titulo="Agregar un nueva Propiedad" 
                 handleSubmit={sendData} 
-                params={["nombre"]}
+                params={["propiedad_id","inquilino_id","fecha_desde","cantidad_noches"]}
                 state={state}
                 errorMessage={errorMessage}
             />
@@ -60,4 +77,4 @@ function NewTipoPropiedad(){
     );
 }
 
-export default NewTipoPropiedad;
+export default NewReserva;

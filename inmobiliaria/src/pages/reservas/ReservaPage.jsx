@@ -5,14 +5,13 @@ import conexionServer from '../../utils/conexionServer';
 import { Oval } from 'react-loader-spinner';
 import UlComponent from '../../components/UlComponent';
 import { useNavigate } from 'react-router-dom';
-import PropiedadItem from '../../components/PropiedadItem';
 import ButtonComponent from '../../components/ButtonComponent';
-import FiltradoComponent from '../../components/FiltradoComponent';
+import ReservaItem from '../../components/ReservaItem';
 //OBSERVACION: yo cambiaria el state solo cuando 
 //todos los datos esten completamente cargados
 //(nos evitamoos un error que salta cuando intentas borrar una propiedad 
 //sin que carguen todos sus datos por completo)
-function PropiedadPage() {
+function ReservaPage() {
   const [data,setData]=useState(null);
   const [state,setState]=useState("LOADING");
   const navigate=useNavigate();
@@ -21,7 +20,7 @@ function PropiedadPage() {
 
   useEffect(()=>{
     setState("LOADING");
-    conexionServer("propiedades",setData,setState);
+    conexionServer("reservas",setData,setState);
   },[refresh]);
 
   function handleClickCreate(event, url) {
@@ -41,14 +40,14 @@ function PropiedadPage() {
     //hay que ver como enviar un alert, algo que funcione como condicional
     //Se debe pedir confirmación antes de realizar la acción.
 
-    conexionServer(`propiedades/${id}`, setData, setState, "DELETE");
-    alert("propiedad eliminada");
+    conexionServer(`reservas/${id}`, setData, setState, "DELETE");
+    alert("reserva eliminada");
     setRefresh(!refresh);
   }
 
-  const childrenItem = (propiedad) => (
-    <PropiedadItem
-      propiedad={propiedad}
+  const childrenItem = (reserva) => (
+    <ReservaItem 
+      reserva={reserva}
       handleClickEdit={handleClickEdit}
       handleClickDelete={handleClickDelete}
     />
@@ -60,9 +59,8 @@ function PropiedadPage() {
       <main>
         {state==="SUCCESS" ? (
           <div className="div-main">
-            <FiltradoComponent data={data} setData={setData} setState={setState}/>
             <UlComponent data={data} state={state} childrenItem={childrenItem} />
-            <ButtonComponent type="add" handleClick={handleClickCreate} params={`/propiedad/create`} textContent='Agregar nueva Propiedad'/>
+            <ButtonComponent type="add" handleClick={handleClickCreate} params={`/reserva/create`} textContent='Agregar nueva Reserva'/>
           </div>
         ) : state==="LOADING" ? (
           <div className="loading-oval-container">
@@ -83,4 +81,4 @@ function PropiedadPage() {
   );
 }
 
-export default PropiedadPage;
+export default ReservaPage;

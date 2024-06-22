@@ -1,21 +1,21 @@
 import '../assets/styles/Button.css';
-import { useNavigate } from "react-router-dom";
 
-function ButtonComponent({ type, path }){
-    const navigate = useNavigate();
+function ButtonComponent({ type , handleClick=null, params, textContent='', id='' }){
     const buttonText = {
         delete: "Eliminar",
         edit: "Editar",
         add: "Agregar"
     }
 
-    function handleClick(){
-        navigate(path);
+    function manejadorClick(event){
+        if(handleClick!=null){
+            handleClick(event, params);
+        }
     }
 
     return(
-        <button className={'button-'+type} onClick={handleClick}>
-            <p>{buttonText[type]}</p>
+        <button id={id} className={'button-' + type} type="submit" onClick={(event)=>manejadorClick(event)}>
+            <p>{`${textContent!=''? `${textContent}`: `${buttonText[type]}`}`}</p>
         </button>
     );
 }
