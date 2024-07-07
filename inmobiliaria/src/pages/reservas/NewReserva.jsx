@@ -1,24 +1,20 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import validarCampos from "../../utils/validarCampos";
 import conexionServer from "../../utils/conexionServer";
 import FormChangeDatos from "../../components/FormChangeDatos";
 
-//hay variables que sobran me parece
 function NewReserva(){
     const navigate = useNavigate();
-    const [data,setData]=useState({});
-    const [state,setState]=useState("LOADING");
-    const [errorMessage, setErrorMessage] = useState("");
+    const [state,setState]=useState();
+    const [errorMessage, setErrorMessage] = useState(""); 
 
     async function sendData(event){
         event.preventDefault();
 
-        setState("LOADING");
-
         let formData = new FormData(event.target);
 
-        let datos = {};
+        let datos={};
         formData.forEach((value, key) => {
             if(value==='true'){
                 datos[key]=1;
@@ -28,6 +24,8 @@ function NewReserva(){
                 datos[key] = value;
             }
         });
+
+        console.log("holaa");
 
         let validaciones = { 
             'propiedad_id': {
@@ -49,29 +47,51 @@ function NewReserva(){
         };
 
         try {
+            console.log("pincho?")
             validarCampos(datos,validaciones);
+            console.log("pase las validaciones")
 
-            conexionServer("reservas", setData, setState, "POST", datos);
-            if(state==="SUCCESS"){
-                alert('Reserva creada exitosamente.');
+            conexionServer("reservas", "POST", datos).then(() => {
+                alert('Ingreso de datos exitoso.');
                 navigate("/reserva");
-            }
+            }).catch(err => {
+                setState("ERROR");
+                let errorObject;
+                try {
+                    errorObject = JSON.parse(err.message);
+                } catch (parseError) {
+                    errorObject = { message: "Error inesperado. Por favor, inténtelo de nuevo más tarde." };
+                }
+
+                setErrorMessage(errorObject);
+            });
+            
         }catch (err) {
             setState("ERROR");
-            const errorObject = JSON.parse(err.message);
+            console.log(err);
+            let errorObject;
+            try {
+                errorObject = JSON.parse(err.message);
+            } catch (parseError) {
+                errorObject = { message: "Error inesperado. Por favor, inténtelo de nuevo más tarde." };
+            }
+
             setErrorMessage(errorObject);
         }
     }
 
-
+    //si cambio el inquilino_id por inquilinos el select funciona pero 
+    //aca no me saltan los errores porq para que salte tendria que ser el campo
+    // === inquilino_id y es inquilinos
     return(
         <>
             <FormChangeDatos 
-                titulo="Agregar un nueva Propiedad" 
+                titulo="Agregar una nueva Reserva" 
                 handleSubmit={sendData} 
-                params={["propiedad_id","inquilino_id","fecha_desde","cantidad_noches"]}
+                params={["fecha_desde","cantidad_noches"]}
                 state={state}
                 errorMessage={errorMessage}
+                camposDeSeleccion={["inquilino_id","propiedad_id"]}
             />
         </>
     );

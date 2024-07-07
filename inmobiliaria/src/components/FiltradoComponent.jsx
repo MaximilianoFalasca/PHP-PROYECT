@@ -3,31 +3,27 @@ import conexionServer from '../utils/conexionServer';
 import '../assets/styles/FiltradoComponent.css';
 import ButtonComponent from './ButtonComponent';
 
-function FiltradoComponent({ data, setData, setState }) {
+function FiltradoComponent({ data, setState, setIds }) {
     const [filtrado,setFiltrado]=useState(false);
     const [localidades,setLocalidades]=useState([]);
 
     useEffect(()=>{
-        conexionServer(`localidades`,setLocalidades,setState,"GET");
+        conexionServer("localidades").then( response => {
+            setLocalidades(response.data);
+            setState("SUCCESS");
+          });
     },[]);
 
-    //falta validar los campos
     function handleSubmit(event) {
         event.preventDefault();
         let buttonId=event.nativeEvent.submitter.id;
+        let form = event.target;
         if(buttonId==1){
-            let form = event.target;
-            /*
-            let localidadesa=form.Localidades;
-            console.log(form.Localidades);
-            console.log(localidadesa);
-            console.log(localidadesa.options);
-            console.log(localidadesa.value);
-            /*for(let element in localidadesa){
-                console.log(element);
-            };*/
             let disponible = form.Disponible.checked;
             let localidad = form.Localidades.value;
+
+            console.log(localidad)
+
             let fechaInicio = form.Fecha_inicio.value;
             let cantidadHuespedes = form.Cantidad_huespedes.value;
 
@@ -38,12 +34,13 @@ function FiltradoComponent({ data, setData, setState }) {
                 cantidad_huespedes:cantidadHuespedes
             };
 
-            //console.log(allData);
+            console.log(allData);
 
             let newData={};
             for(let key in allData){
-                //console.log(key);
+                console.log(key);
                 if(allData[key] !== "" && allData[key] !== null && allData[key] !== undefined){
+                    console.log(allData[key]);  
                     if(typeof allData[key]=== "boolean"){
                         if(allData[key]){
                             allData[key]=1;
@@ -55,18 +52,38 @@ function FiltradoComponent({ data, setData, setState }) {
                 }
             }
 
-            //console.log(newData);
             let queryParams = new URLSearchParams(newData).toString();
             console.log(`propiedades?${queryParams}`);
-            conexionServer(`propiedades?${queryParams}`,setData,setState,"GET");
-            console.log(data);
+            conexionServer(`propiedades?${queryParams}`).then( response => {
+                let datos=response.data;
+                let ids=[];
+
+                datos.forEach(element => {
+                    ids.push(element.id);
+                });
+
+                console.log("ids: ",ids);
+                setIds(ids);
+                setState("SUCCESS");
+            });
             if(!filtrado){
                 setFiltrado(true);
             }
         }else{
             if(filtrado){
-                conexionServer(`propiedades`,setData,setState,"GET");
+                conexionServer(`propiedades`).then( response => {
+                    console.log(data);
+                    let ids=[];
+                    
+                    data.forEach(element=>{
+                        ids.push(element.id);
+                    });
+                    
+                    setIds(ids);
+                    setState("SUCCESS");
+                });
                 setFiltrado(false);
+                form.reset();
             }
         }
     }
@@ -80,6 +97,9 @@ function FiltradoComponent({ data, setData, setState }) {
             <div>
                 <label htmlFor="Localidades">Localidad: </label>
                 <select name="Localidades" id="Localidades">
+                    <option key="0" value="">
+                        Seleccione una localidad
+                    </option>
                     {localidades.length > 0 && localidades.map(localidad => (
                         <option key={localidad.id} value={localidad.id}>
                             {localidad.nombre}

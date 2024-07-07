@@ -11,11 +11,14 @@ function EditTipoPropiedad() {
     let { id } = useParams();
     const [data, setData] = useState(null);
     const [state, setState] = useState("Loading");
-    const [errorMessage, setErrorMessage] = useState("");
+    const [errorMessage, setErrorMessage] = useState({});
     const navigate=useNavigate();
 
     useEffect(()=>{
-        conexionServer(`tipos_propiedad/${id}`, setData, setState);
+        conexionServer(`tipos_propiedad/${id}`).then( data => {
+            setData(data.data);
+            setState("SUCCESS");
+        });
     },[]);
 
     const handleSubmit = async (event) => {
@@ -32,14 +35,29 @@ function EditTipoPropiedad() {
 
         try {
             validarCampos(datos,validaciones);
-            conexionServer(`tipos_propiedad/${id}`, setData, setState, 'PUT', {nombre: datos.nombre});
-            if(state="SUCCESS"){
-                alert('Tipo de propiedad actualizado exitosamente.');
-                navigate("/");
-            }  
+            conexionServer(`tipos_propiedad/${id}`, 'PUT', {nombre: datos.nombre}).then( () => {
+                    alert('Tipo de propiedad actualizado exitosamente.');
+                    navigate("/");
+                }).catch(err => {
+                    setState("ERROR");
+                    let errorObject;
+                    try {
+                        errorObject = JSON.parse(err.message);
+                    } catch (parseError) {
+                        errorObject = { message: "Error inesperado. Por favor, inténtelo de nuevo más tarde." };
+                    }
+
+                    setErrorMessage(errorObject); 
+                });
         } catch (err) {
             setState("ERROR");
-            const errorObject = JSON.parse(err.message);
+            let errorObject;
+            try {
+                errorObject = JSON.parse(err.message);
+            } catch (parseError) {
+                errorObject = { message: "Error inesperado. Por favor, inténtelo de nuevo más tarde." };
+            }
+
             setErrorMessage(errorObject);
         }
     };

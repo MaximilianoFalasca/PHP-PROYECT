@@ -7,9 +7,8 @@ import FormChangeDatos from "../../components/FormChangeDatos";
 //hay variables que sobran me parece
 function NewTipoPropiedad(){
     const navigate = useNavigate();
-    const [data,setData]=useState({});
-    const [state,setState]=useState("LOADING");
-    const [errorMessage, setErrorMessage] = useState("");
+    const [state,setState] = useState();
+    const [errorMessage, setErrorMessage] = useState({});
 
     async function sendData(event){
         event.preventDefault();
@@ -31,32 +30,42 @@ function NewTipoPropiedad(){
             validarCampos(datos, validaciones);
             console.log(datos);
 
-            conexionServer("tipos_propiedad", setData, setState, "POST", datos);
-            if(state==="SUCCESS"){
-                alert('Ingreso de datos exitoso.');
-            
-                setTimeout(() => {
+            conexionServer("tipos_propiedad", "POST", datos, setErrorMessage).then(() => {
+                    alert('Ingreso de datos exitoso.');
                     navigate("/");
-                }, 5000);
-            }
+                }).catch(err => {
+                    setState("ERROR");
+                    let errorObject;
+                    try {
+                        errorObject = JSON.parse(err.message);
+                    } catch (parseError) {
+                        errorObject = { message: "Error inesperado. Por favor, inténtelo de nuevo más tarde." };
+                    }
+
+                    setErrorMessage(errorObject);
+                });
         } catch (err) {
             setState("ERROR");
-            const errorObject = JSON.parse(err.message);
+            let errorObject;
+            try {
+                errorObject = JSON.parse(err.message);
+            } catch (parseError) {
+                errorObject = { message: "Error inesperado. Por favor, inténtelo de nuevo más tarde." };
+            }
+
             setErrorMessage(errorObject);
         }
     }
 
 
     return(
-        <>
-            <FormChangeDatos 
-                titulo="Agregar un nuevo Tipo de Propiedad" 
-                handleSubmit={sendData} 
-                params={["nombre"]}
-                state={state}
-                errorMessage={errorMessage}
-            />
-        </>
+        <FormChangeDatos 
+            titulo="Agregar un nuevo Tipo de Propiedad" 
+            handleSubmit={sendData} 
+            params={["nombre"]}
+            state={state}
+            errorMessage={errorMessage}
+        />
     );
 }
 

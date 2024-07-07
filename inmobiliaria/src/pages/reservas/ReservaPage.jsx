@@ -1,3 +1,4 @@
+// ReservaPage.js
 import React, { useEffect, useState } from 'react';
 import HeaderComponent from '../../components/HeaderComponent';
 import FooterComponent from '../../components/FooterComponent';
@@ -7,21 +8,28 @@ import UlComponent from '../../components/UlComponent';
 import { useNavigate } from 'react-router-dom';
 import ButtonComponent from '../../components/ButtonComponent';
 import ReservaItem from '../../components/ReservaItem';
-//OBSERVACION: yo cambiaria el state solo cuando 
-//todos los datos esten completamente cargados
-//(nos evitamoos un error que salta cuando intentas borrar una propiedad 
-//sin que carguen todos sus datos por completo)
+
 function ReservaPage() {
-  const [data,setData]=useState(null);
-  const [state,setState]=useState("LOADING");
-  const navigate=useNavigate();
+  const [data, setData] = useState(null);
+  const [state, setState] = useState("LOADING");
   const [refresh, setRefresh] = useState(false);
+  const navigate = useNavigate();
+  const [propiedades,setPropiedades] = useState(null);
+  const [inquilinos,setInquilinos] = useState(null);
 
-
-  useEffect(()=>{
+  useEffect(() => {
     setState("LOADING");
-    conexionServer("reservas",setData,setState);
-  },[refresh]);
+    conexionServer('reservas').then(data => {
+        setData(data.data);
+        setState("SUCCESS");
+      })
+    conexionServer("propiedades").then( response => {
+      setPropiedades(response.data);
+    });
+    conexionServer("inquilinos").then( response => {
+      setInquilinos(response.data);
+    });
+  }, []);
 
   function handleClickCreate(event, url) {
     event.preventDefault();
@@ -33,50 +41,56 @@ function ReservaPage() {
     navigate(url);
   };
 
-  //NO FUNCIONA HASTA QUE TERMINA DE CARGAR TODO EL COMPONENTE
-  //tira state===ERROR
-  function handleClickDelete(event, id ) {
+  function handleClickDelete(event, id) {
     event.preventDefault();
-    //hay que ver como enviar un alert, algo que funcione como condicional
-    //Se debe pedir confirmación antes de realizar la acción.
-
-    conexionServer(`reservas/${id}`, setData, setState, "DELETE");
-    alert("reserva eliminada");
-    setRefresh(!refresh);
+    const confirmDelete = window.confirm('¿Estás seguro de eliminar esta reserva?');
+    if (confirmDelete) {
+      conexionServer(`reservas/${id}`, "DELETE")
+        .then(() => {
+          alert("reserva eliminada");
+          setData(data.filter(x => x.id !== id));
+        })
+        .catch(error => {
+          const parsedError = JSON.parse(error.message);
+          alert(parsedError.id);
+        });
+    }
   }
 
   const childrenItem = (reserva) => (
-    <ReservaItem 
+    <ReservaItem
       reserva={reserva}
       handleClickEdit={handleClickEdit}
       handleClickDelete={handleClickDelete}
+      propiedades={propiedades}
+      inquilinos={inquilinos}
     />
   );
 
   return (
     <>
-      <HeaderComponent/>
+      <HeaderComponent />
       <main>
-        {state==="SUCCESS" ? (
+        {state === "SUCCESS" ? (
           <div className="div-main">
-            <UlComponent data={data} state={state} childrenItem={childrenItem} />
             <ButtonComponent type="add" handleClick={handleClickCreate} params={`/reserva/create`} textContent='Agregar nueva Reserva'/>
+            <UlComponent data={data} state={state} childrenItem={childrenItem} />
           </div>
-        ) : state==="LOADING" ? (
+        ) : state === "LOADING" ? (
           <div className="loading-oval-container">
-              <Oval
-                  className="loading-oval"
-                  visible={true}
-                  color="var(--color-oval)"
-                  secondaryColor="var(--color-oval)"
-                  ariaLabel="oval-loading"
-              />
+            <Oval
+              className="loading-oval"
+              visible={true}
+              color="var(--color-oval)"
+              secondaryColor="var(--color-oval)"
+              ariaLabel="oval-loading"
+            />
           </div>
         ) : (
-            <p>Error</p>
+          <p>Error</p>
         )}
       </main>
-      <FooterComponent/>
+      <FooterComponent />
     </>
   );
 }

@@ -16,21 +16,35 @@ function EditPropiedad() {
     const navigate = useNavigate();
 
     useEffect(()=>{
-        conexionServer(`propiedades/${id}`, setData, setState);
+        setState("LOADING");
+        conexionServer(`propiedades/${id}`)
+        .then(data => {
+            console.log("Data", data);
+            setData(data.data);
+            setState("SUCCESS");
+        })
+        .catch(() => setState("ERROR"));
     },[]);
 
     const handleSubmit = async (event) => {
         event.preventDefault();
         let formData = new FormData(event.target);
 
+
         let datos = {};
         formData.forEach((value, key) => {
-            if(value==='true'){
+            if(value==='true' || value==='1'){
                 datos[key]=1;
-            }else if(value==='false'){
+            }else if(value==='false' || value==='0'){
                 datos[key]=0;
             }else if(value!==''){
-                datos[key] = value;
+                if(key == 'localidades_id'){
+                    datos["localidad_id"]=value;
+                }else if(key == 'tipos_propiedad_id'){
+                    datos["tipo_propiedad_id"]=value;
+                }else{
+                    datos[key] = value;
+                }
             }
         });
 
@@ -85,15 +99,31 @@ function EditPropiedad() {
         try {
             validarCampos(datos,validaciones);
 
-            conexionServer(`propiedades/${id}`, setData, setState, 'PUT', datos);
-            
-            if(state==="SUCCESS"){
+            conexionServer(`propiedades/${id}`, "PUT", datos).then(() => {
                 alert('Propiedad actualizada exitosamente.');
                 navigate("/propiedad");
-            }
+            }).catch(err => {
+                setState("ERROR");
+                let errorObject;
+                try {
+                    errorObject = JSON.parse(err.message);
+                } catch (parseError) {
+                    errorObject = { message: "Error inesperado. Por favor, inténtelo de nuevo más tarde." };
+                }
+
+                setErrorMessage(errorObject);
+                //const parsedError = JSON.parse(error.message);
+                //setErrorMessage(parsedError); 
+            });
         }catch (err) {
             setState("ERROR");
-            const errorObject = JSON.parse(err.message);
+            let errorObject;
+            try {
+                errorObject = JSON.parse(err.message);
+            } catch (parseError) {
+                errorObject = { message: "Error inesperado. Por favor, inténtelo de nuevo más tarde." };
+            }
+
             setErrorMessage(errorObject);
         }
     };
@@ -103,12 +133,13 @@ function EditPropiedad() {
             <FormChangeDatos 
                 titulo="Editar Propiedad" 
                 handleSubmit={handleSubmit} 
-                params={["domicilio","localidad_id","cantidad_habitaciones","cantidad_banios"
+                params={["domicilio","cantidad_habitaciones","cantidad_banios"
                     ,"cochera","cantidad_huespedes","fecha_inicio_disponibilidad","cantidad_dias"
-                    ,"disponible","valor_noche","tipo_propiedad_id"]}
+                    ,"disponible","valor_noche"]}
                 state={state}
                 errorMessage={errorMessage}
                 data={data}
+                camposDeSeleccion={["localidad_id","tipo_propiedad_id"]}
             />
         </>
     );
